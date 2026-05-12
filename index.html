@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0f172a">
+<title>Пурсиш</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f172a;
+    background-image:
+      radial-gradient(at 20% 0%, rgba(99, 102, 241, 0.4) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, rgba(236, 72, 153, 0.25) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(59, 130, 246, 0.2) 0px, transparent 50%);
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .app {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px 20px 28px;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-top: env(safe-area-inset-top, 8px);
+  }
+
+  .back-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f1f5f9;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: transform 0.15s ease, background 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .back-btn.visible { display: flex; }
+
+  .back-btn:active {
+    transform: scale(0.92);
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .back-btn svg { width: 18px; height: 18px; }
+
+  .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #94a3b8;
+    text-transform: uppercase;
+  }
+
+  .step-counter {
+    margin-left: auto;
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 600;
+  }
+
+  /* Progress bar */
+  .progress {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 32px;
+  }
+
+  .progress-step {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-step::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    transform: translateX(-100%);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .progress-step.done::after,
+  .progress-step.active::after { transform: translateX(0); }
+
+  /* Content area */
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .step {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .step.active { display: flex; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    color: #a5b4fc;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    align-self: flex-start;
+    margin-bottom: 16px;
+    letter-spacing: 0.5px;
+  }
+
+  .step-label::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #a5b4fc;
+  }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin-bottom: 28px;
+    letter-spacing: -0.5px;
+    color: #fff;
+  }
+
+  /* Options */
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 18px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    color: #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .option:active {
+    transform: scale(0.97);
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(139, 92, 246, 0.6);
+  }
+
+  .option-letter {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .option-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .option-arrow {
+    color: #64748b;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  /* Slider */
+  .slider-block {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1.5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 32px 24px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  .slider-value {
+    text-align: center;
+    font-size: 64px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a5b4fc, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+    margin-bottom: 8px;
+    letter-spacing: -2px;
+  }
+
+  .slider-range {
+    text-align: center;
+    font-size: 14px;
+    color: #94a3b8;
+    margin-bottom: 28px;
+    font-weight: 500;
+  }
+
+  .slider-track {
+    position: relative;
+    padding: 10px 0;
+  }
+
+  input[type="range"] {
+    width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 4px solid #8b5cf6;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.6);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    border: 4px solid #8b5cf6;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.6);
+  }
+
+  .slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 14px;
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 600;
+  }
+
+  /* Buttons */
+  .btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    padding: 18px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn:active {
+    transform: scale(0.97);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    box-shadow: none;
+    color: #f1f5f9;
+  }
+
+  .btn-secondary:active {
+    background: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+  }
+
+  .btn-whatsapp {
+    background: linear-gradient(135deg, #25d366, #128c7e);
+    box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+    text-decoration: none;
+  }
+
+  .btn-whatsapp:active { box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4); }
+
+  /* Message screens */
+  .message-screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .icon-circle {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .icon-circle::before {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    opacity: 0.3;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.15); opacity: 0.1; }
+  }
+
+  .icon-fail {
+    background: linear-gradient(135deg, #f87171, #ef4444);
+    box-shadow: 0 12px 32px rgba(239, 68, 68, 0.4);
+  }
+  .icon-fail::before { background: #ef4444; }
+
+  .icon-success {
+    background: linear-gradient(135deg, #34d399, #10b981);
+    box-shadow: 0 12px 32px rgba(16, 185, 129, 0.4);
+  }
+  .icon-success::before { background: #10b981; }
+
+  .icon-circle svg {
+    width: 44px;
+    height: 44px;
+    color: #fff;
+    position: relative;
+    z-index: 1;
+  }
+
+  .message-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .message-text {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+    color: #cbd5e1;
+    padding: 0 8px;
+  }
+
+  /* Bottom action area */
+  .bottom-action {
+    padding-top: 20px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Small screens */
+  @media (max-height: 700px) {
+    h2 { font-size: 24px; margin-bottom: 20px; }
+    .slider-value { font-size: 52px; }
+    .slider-block { padding: 24px 20px; }
+    .icon-circle { width: 80px; height: 80px; margin-bottom: 20px; }
+    .icon-circle svg { width: 36px; height: 36px; }
+    .message-title { font-size: 20px; }
+    .progress { margin-bottom: 24px; }
+    .header { margin-bottom: 18px; }
+  }
+
+  @media (max-height: 600px) {
+    .app { padding: 14px 18px 18px; }
+    h2 { font-size: 22px; margin-bottom: 16px; }
+    .option { padding: 14px 16px; }
+    .slider-value { font-size: 44px; }
+    .slider-block { padding: 18px 16px; margin-bottom: 14px; }
+    .btn { padding: 15px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <button class="back-btn" id="backBtn" onclick="goBack()" aria-label="Бозгашт">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    <div class="brand">Пурсиш</div>
+    <div class="step-counter" id="stepCounter">1 / 3</div>
+  </div>
+
+  <div class="progress" id="progress">
+    <div class="progress-step active"></div>
+    <div class="progress-step"></div>
+    <div class="progress-step"></div>
+  </div>
+
+  <div class="content">
+
+    <!-- Вопрос 1 -->
+    <div class="step active" id="step1">
+      <div class="step-label">Саволи 1</div>
+      <h2>Шумо дар кадом самт ҳастед?</h2>
+      <div class="options">
+        <button class="option" onclick="answerQ1('A')">
+          <span class="option-letter">A</span>
+          <span class="option-text">Соҳибкори ботаҷриба ҳастам</span>
+          <span class="option-arrow">›</span>
+        </button>
+        <button class="option" onclick="answerQ1('B')">
+          <span class="option-letter">B</span>
+          <span class="option-text">Аз сифр оғоз мекунам</span>
+          <span class="option-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Вопрос 2 -->
+    <div class="step" id="step2">
+      <div class="step-label">Саволи 2</div>
+      <h2>Дар гурӯҳи шумо чанд нафар кор мекунад?</h2>
+      <div class="slider-block">
+        <div class="slider-value" id="sliderValue">0</div>
+        <div class="slider-range" id="sliderRange">аз 0 то 3 нафар</div>
+        <div class="slider-track">
+          <input type="range" id="teamSlider" min="0" max="10" value="0" oninput="updateSlider()">
+        </div>
+        <div class="slider-labels">
+          <span>0</span>
+          <span>5</span>
+          <span>10</span>
+        </div>
+      </div>
+      <div class="bottom-action">
+        <button class="btn" onclick="answerQ2()">Идома додан</button>
+      </div>
+    </div>
+
+    <!-- Вопрос 3 -->
+    <div class="step" id="step3">
+      <div class="step-label">Саволи 3</div>
+      <h2>Фурӯши моҳонаи тиҷорати шумо чанд аст?</h2>
+      <div class="options">
+        <button class="option" onclick="answerQ3('A')">
+          <span class="option-letter">A</span>
+          <span class="option-text">Аз 50 000 то 100 000 сомонӣ</span>
+          <span class="option-arrow">›</span>
+        </button>
+        <button class="option" onclick="answerQ3('B')">
+          <span class="option-letter">B</span>
+          <span class="option-text">Аз 100 000 то 300 000 сомонӣ</span>
+          <span class="option-arrow">›</span>
+        </button>
+        <button class="option" onclick="answerQ3('C')">
+          <span class="option-letter">C</span>
+          <span class="option-text">Аз 300 000 сомонӣ боло</span>
+          <span class="option-arrow">›</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Сообщение при неудаче -->
+    <div class="step" id="fail">
+      <div class="message-screen">
+        <div class="icon-circle icon-fail">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </div>
+        <div class="message-title">Мутаассифона</div>
+        <p class="message-text" id="failMessage"></p>
+        <div class="bottom-action">
+          <button class="btn btn-secondary" onclick="restart()">Бозгашт</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Финальный экран -->
+    <div class="step" id="success">
+      <div class="message-screen">
+        <div class="icon-circle icon-success">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <div class="message-title">Табрик!</div>
+        <p class="message-text">Шумо ба шартҳои барнома мувофиқ ҳастед. Барои гирифтани маълумоти бештар ба WhatsApp нависед.</p>
+        <div class="bottom-action">
+          <a href="https://wa.me/995055012" class="btn btn-whatsapp" target="_blank" rel="noopener">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.297-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.885 3.488"/>
+            </svg>
+            <span>Ба WhatsApp нависед</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const stepFlow = ['step1', 'step2', 'step3', 'success'];
+  const progressSteps = document.querySelectorAll('.progress-step');
+  const stepCounter = document.getElementById('stepCounter');
+  const progressBar = document.getElementById('progress');
+  const backBtn = document.getElementById('backBtn');
+  const history = ['step1'];
+
+  function showStep(id, pushHistory = true) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    const idx = stepFlow.indexOf(id);
+    progressSteps.forEach((p, i) => {
+      p.classList.remove('active', 'done');
+      if (i < idx) p.classList.add('done');
+      else if (i === idx) p.classList.add('active');
+    });
+
+    if (idx >= 0 && idx < 3) {
+      stepCounter.textContent = (idx + 1) + ' / 3';
+      stepCounter.style.visibility = 'visible';
+      progressBar.style.visibility = 'visible';
+    } else {
+      stepCounter.style.visibility = 'hidden';
+      progressBar.style.visibility = 'hidden';
+    }
+
+    if (pushHistory && history[history.length - 1] !== id) {
+      history.push(id);
+    }
+
+    updateBackBtn();
+  }
+
+  function updateBackBtn() {
+    if (history.length > 1) backBtn.classList.add('visible');
+    else backBtn.classList.remove('visible');
+  }
+
+  function goBack() {
+    if (history.length <= 1) return;
+    history.pop();
+    const prev = history[history.length - 1];
+    showStep(prev, false);
+  }
+
+  function showFail(message) {
+    document.getElementById('failMessage').textContent = message;
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('fail').classList.add('active');
+    progressBar.style.visibility = 'hidden';
+    stepCounter.style.visibility = 'hidden';
+    backBtn.classList.remove('visible');
+  }
+
+  function answerQ1(choice) {
+    if (choice === 'A') {
+      showStep('step2');
+    } else {
+      showFail('Ин барнома барои соҳибкороне пешбинӣ шудааст, ки аллакай таҷрибаи тиҷорат доранд ва соҳиби тиҷорат мебошанд.');
+    }
+  }
+
+  function updateSlider() {
+    const val = parseInt(document.getElementById('teamSlider').value);
+    document.getElementById('sliderValue').textContent = val;
+    let range;
+    if (val <= 3) range = 'аз 0 то 3 нафар';
+    else if (val <= 5) range = 'аз 4 то 5 нафар';
+    else range = 'аз 6 то 10 нафар';
+    document.getElementById('sliderRange').textContent = range;
+  }
+
+  function answerQ2() {
+    const val = parseInt(document.getElementById('teamSlider').value);
+    if (val <= 3) {
+      showFail('Ин барнома барои соҳибкороне мувофиқ аст, ки аллакай гурӯҳ доранд ва мехоҳанд фурӯшу даромади худро зиёд кунанд.');
+    } else {
+      showStep('step3');
+    }
+  }
+
+  function answerQ3(choice) {
+    if (choice === 'A') {
+      showFail('Дар ин марҳила мо соҳибкоронеро қабул мекунем, ки фурӯши моҳонаи тиҷораташон аз 100 000 сомонӣ боло мебошад.');
+    } else {
+      showStep('success');
+    }
+  }
+
+  function restart() {
+    document.getElementById('teamSlider').value = 0;
+    updateSlider();
+    history.length = 0;
+    history.push('step1');
+    showStep('step1', false);
+  }
+</script>
+
+</body>
+</html>
